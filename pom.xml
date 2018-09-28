@@ -26,15 +26,6 @@
   </scm>
   <profiles>
     <profile>
-      <id>install-and-test</id>
-      <activation>
-        <property>
-          <name>env</name>
-          <value>sandbox</value>
-        </property>
-      </activation>
-    </profile>
-    <profile>
       <id>package-app</id>
       <activation>
         <property>
