@@ -18,6 +18,16 @@
     <community>ec-better</community>
     <yumRepo>ec-better</yumRepo>
   </properties>
+    <repositories>
+    <repository>
+      <id>ec-better.terradue.com</id>
+      <name>repository.terradue.com-ec-better-releases</name>
+      <url>https://repository.terradue.com/artifactory/ec-better-stable</url>
+      <releases>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+    </repository>
+  </repositories>
   <scm>
     <connection>scm:git:ssh://git@github.com/ec-better/ewf-satcen-01-02-01</connection>
     <developerConnection>scm:git:ssh://git@github.com/ec-better/ewf-satcen-01-02-01</developerConnection>
