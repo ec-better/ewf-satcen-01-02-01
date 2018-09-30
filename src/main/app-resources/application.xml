@@ -4,7 +4,7 @@
     <jobTemplate id="snap">
       <streamingExecutable>/application/snap/run</streamingExecutable>
       <defaultParameters>
-        <parameter id="wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON((9.789267467315815 13.545328656445236,9.789267467315815 13.293608039872737,9.963279058576214 13.289265722304478,9.952124469392855 13.538821973353123,9.789267467315815 13.545328656445236,9.789267467315815 13.545328656445236))</parameter>
+        <parameter id="crop_wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON((9.789267467315815 13.545328656445236,9.789267467315815 13.293608039872737,9.963279058576214 13.289265722304478,9.952124469392855 13.538821973353123,9.789267467315815 13.545328656445236,9.789267467315815 13.545328656445236))</parameter>
         <parameter id="algorithm" title="Algorithm to use: SLC_STACK, MTC, FULL" abstract="Algorithm to use: SLC_STACK, MTC, FULL" maxOccurs="1" scope="runtime" type="LiteralData">
           <options>
             <option>SLC_STACK</option>
