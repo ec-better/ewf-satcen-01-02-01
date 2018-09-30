@@ -11,14 +11,14 @@
     <version>3.0.1-docker</version>
   </parent>
   <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
-  <version>0.4</version>
+  <version>0.5</version>
   <properties>
     <summary>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</summary>
     <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
     <community>ec-better</community>
     <yumRepo>ec-better</yumRepo>
   </properties>
-  <repositories>
+  <!-- <repositories>
     <repository>
       <id>ec-better.terradue.com</id>
       <name>repository.terradue.com-ec-better-releases</name>
@@ -27,7 +27,7 @@
         <checksumPolicy>warn</checksumPolicy>
       </releases>
     </repository>
-  </repositories>
+  </repositories>-->
   <scm>
     <connection>scm:git:ssh://git@github.com/ec-better/ewf-satcen-01-02-01</connection>
     <developerConnection>scm:git:ssh://git@github.com/ec-better/ewf-satcen-01-02-01</developerConnection>
