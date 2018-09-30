@@ -51,7 +51,7 @@ function main() {
     set_env || exit $?
   
     s1_pair=$( cat /dev/stdin ) 
-    wkt="$( ciop-getparam wkt )"
+    crop_wkt="$( ciop-getparam crop_wkt )"
     algorithm=$( ciop-getparam algorithm )
   
     cd ${TMPDIR}
@@ -73,8 +73,9 @@ function main() {
         
             master_identifier="$( opensearch-client ${prd} identifier )"
             start_date="$( opensearch-client ${prd} startdate )"
-            wkt_prd="$( opensearch-client ${prd} wkt )"
+
         } || {
+
             slave_identifier="$( opensearch-client ${prd} identifier )"
             end_date="$( opensearch-client ${prd} enddate )"
         }
@@ -90,7 +91,7 @@ function main() {
     /opt/satcen-mtc/bin/mtc ${algorithm} \
                             ${TMPDIR} \
                             ${master_identifier} \
-                            "${wkt}" 1>&2 || return ${ERR_JAVA}
+                            "${crop_wkt}" 1>&2 || return ${ERR_JAVA}
 
 
     for s1 in ${s1_local[@]}
@@ -99,20 +100,22 @@ function main() {
         rm -fr ${s1}
     done
 
+    output_name=${master_identifier}_${slave_identifier}_${algorithm} 
+ 
     ciop-log "INFO" "(6 of ${num_steps}) Compress results"  
-    tar -C ${TMPDIR} -czf ${TMPDIR}/${algorithm}.tgz MTC SLC_STACK
-    ciop-publish -m ${TMPDIR}/${algorithm}.tgz || return ${ERR_PUBLISH}  
+    tar -C ${TMPDIR} -czf ${TMPDIR}/${output_name}.tgz MTC SLC_STACK
+    ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}  
  
     # .properties 
-    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${algorithm}.properties
-    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${algorithm}.properties
-    echo "geometry=${wkt_prd}" >> ${TMPDIR}/${algorithm}.properties
+    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${output_name}.properties
+    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${output_name}.properties
+    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${output_name}.properties
 
-    ciop-publish -m ${TMPDIR}/${algorithm}.properties
+    ciop-publish -m ${TMPDIR}/${output_name}.properties
 
     # clean-up
     ciop-log "INFO" "(8 of ${num_steps}) Clean up" 
-    rm -fr ${algorithm}.tgz
+    rm -fr ${output_name}.tgz
     rm -fr MTC
     rm -fr SLC_STACK
   
