@@ -3,7 +3,7 @@
 # source the ciop functions (e.g. ciop-log, ciop-getparam)
 source ${ciop_job_include}
 
-node="snap"
+node="satcen-mtc"
 
 source /application/${node}/lib/functions.sh
 

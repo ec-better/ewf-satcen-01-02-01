@@ -1,20 +1,13 @@
 #!/bin/bash
 
-set -x
-
 # define the exit codes
 SUCCESS=0
 ERR_NO_URL=5
-ERR_NO_MASTER=8
-ERR_NO_SLAVE=9
-ERR_NO_S1_MASTER_MTD=10
-ERR_NO_S1_SLAVE_MTD=12
-ERR_SNAP=15
-ERR_COMPRESS=20
-ERR_GDAL=25
+ERR_NO_LOCAL_PRD=8
+ERR_JAVA=9
 ERR_PUBLISH=40
 
-node="snap"
+node="satcen-mtc"
 
 # add a trap to exit gracefully
 function cleanExit ()
@@ -24,10 +17,8 @@ function cleanExit ()
   case "${retval}" in
     ${SUCCESS}) msg="Processing successfully concluded";;
     ${ERR_NO_URL}) msg="The Sentinel-1 product online resource could not be resolved";;
-    ${ERR_NO_PRD}) msg="The Sentinel-1  product could not be retrieved";;
+    ${ERR_NO_LOCAL_PRD}) msg="The Sentinel-1 product could not be retrieved";;
     ${ERR_JAVA}) msg="SatCen app failed to process";;
-    ${ERR_GDAL}) msg="GDAL failed to convert result to tif";;
-    ${ERR_COMPRESS}) msg="Failed to compress results";;
     ${ERR_PUBLISH}) msg="Failed to publish the results";;
     *) msg="Unknown error";;
  esac
@@ -67,7 +58,7 @@ function main() {
         [[ -z ${online_resource} ]] && return ${ERR_NO_URL}
 
         local_s1_prd="$( ciop-copy -U -o ${TMPDIR} ${online_resource} )"
-        [[ -z ${local_s1_prd} ]] && return ${ERR_NO_SLAVE}
+        [[ -z ${local_s1_prd} ]] && return ${ERR_NO_LOCAL_PRD}
 
         [[ $i == 0 ]] && {
         
