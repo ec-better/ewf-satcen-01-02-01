@@ -5,7 +5,7 @@ pipeline {
   }
 
   environment {
-        PATH="/opt/anaconda/bin:/opt/snap/bin:/opt/anaconda/bin:/opt/anaconda/bin:/usr/lib64/qt-3.3/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/fbrito/bin"
+        PATH="/opt/anaconda/bin:/opt/satcen-mtc/bin/:/opt/snap6/bin:/opt/anaconda/bin:/opt/anaconda/bin:/usr/lib64/qt-3.3/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/fbrito/bin"
   }
 
   agent {
