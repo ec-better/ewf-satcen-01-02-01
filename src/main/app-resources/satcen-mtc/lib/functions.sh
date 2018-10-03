@@ -79,11 +79,9 @@ function main() {
 
     # invoke satcen JAVA app
     ciop-log "INFO" "Invoke SATCEN application"
-    /opt/satcen-mtc/bin/mtc ${algorithm} \
-                            ${TMPDIR} \
-                            ${master_identifier} \
-                            "${crop_wkt}" 1>&2 || return ${ERR_JAVA}
+    timeout 1h bash -c "/opt/satcen-mtc/bin/mtc ${algorithm} ${TMPDIR} ${master_identifier} \"${crop_wkt}\"" 1>&2 
 
+    [ $? != 0 ] && return ${ERR_JAVA}
 
     for s1 in ${s1_local[@]}
     do 
