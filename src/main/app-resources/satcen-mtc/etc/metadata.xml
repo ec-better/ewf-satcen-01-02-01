@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title type="text"></title>
+    <date xmlns="http://purl.org/dc/elements/1.1/"></date>
+    <spatial xmlns="http://purl.org/dc/terms/"></spatial>
+    <identifier xmlns="http://purl.org/dc/elements/1.1/"></identifier>
+  </entry>
+</feed>
