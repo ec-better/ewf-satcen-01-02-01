@@ -37,11 +37,28 @@ function set_env() {
   
 }
 
+function set_metadata() {
+
+  local xpath="$1"
+  local value="$2"
+  local target_xml="$3"
+
+  xmlstarlet ed -L \
+    -N A="http://www.w3.org/2005/Atom" \
+    -N B="http://purl.org/dc/elements/1.1/" \
+    -N C="http://purl.org/dc/terms/" \
+    -u  "${xpath}" \
+    -v "${value}" \
+    ${target_xml}
+
+}
+
+
 function main() {
 
     set_env || exit $?
   
-    s1_pair=$( cat /dev/stdin ) 
+    s1_pair=$( cat /dev/stdin )
     crop_wkt="$( ciop-getparam crop_wkt )"
     algorithm=$( ciop-getparam algorithm )
   
@@ -54,7 +71,12 @@ function main() {
     for prd in ${s1_pair}
     do
         ciop-log "INFO" "Retrieve ${prd}"
-        online_resource="$( opensearch-client ${prd} enclosure )"
+        IFS=', ' read -r -a search <<< "$( opensearch-client ${prd} enclosure,identifier,startdate,enddate )"
+        online_resource=${search[0]}
+        identifier=${search[1]}
+        start_date=${search[2]}
+        end_date=${search[3]}
+        
         [[ -z ${online_resource} ]] && return ${ERR_NO_URL}
 
         local_s1_prd="$( ciop-copy -U -o ${TMPDIR} ${online_resource} )"
@@ -62,13 +84,11 @@ function main() {
 
         [[ $i == 0 ]] && {
         
-            master_identifier="$( opensearch-client ${prd} identifier )"
-            start_date="$( opensearch-client ${prd} startdate )"
-
+            master_identifier=${identifier}
+            
         } || {
 
-            slave_identifier="$( opensearch-client ${prd} identifier )"
-            end_date="$( opensearch-client ${prd} enddate )"
+            slave_identifier=${identifier}
         }
   
         ciop-log "INFO" "Adding ${local_s1_prd}"  
@@ -90,21 +110,55 @@ function main() {
     done
 
     output_name=${master_identifier}_${slave_identifier}_${algorithm} 
- 
-    ciop-log "INFO" "(6 of ${num_steps}) Compress results"  
-    tar -C ${TMPDIR} -czf ${TMPDIR}/${output_name}.tgz MTC SLC_STACK
-    ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}  
- 
-    # .properties 
-    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${output_name}.properties
-    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${output_name}.properties
-    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${output_name}.properties
+    slc_out_name="SLC_${output_name}"
+    mtc_out_name="MTC_${output_name}"
+    
+    ciop-log "INFO" "(6 of ${num_steps}) Create results geotiff"
+    
+    /opt/snap6/bin/pconvert -f tifp SLC_STACK/*.dim -o ${TMPDIR}
+    mv ${TMPDIR}/*.tif ${TMPDIR}/${slc_out_name}.tif
+    /opt/snap6/bin/pconvert -f tifp MTC/*.dim -o ${TMPDIR}
+    mv ${TMPDIR}/MTC_*.tif ${TMPDIR}/${mtc_out_name}.tif
+    
+    ciop-log "INFO" "(7 of ${num_steps}) Create results metadata"
+    
+    for name in ${slc_out_name} ${mtc_out_name}
+    do
 
-    ciop-publish -m ${TMPDIR}/${output_name}.properties
+      cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/metadata.xml ${TMPDIR}/${name}.xml
+      target_xml=${TMPDIR}/${name}.xml
+      
+      title="${name:0:3} ${master_identifier}_${slave_identifier}"
+      set_metadata \
+        "//A:feed/A:entry/A:title" \
+        "${title}" \
+        ${target_xml}
 
+      set_metadata \
+        "//A:feed/A:entry/B:identifier" \
+        "${name}" \
+        ${target_xml}
+        
+      set_metadata \
+        "//A:feed/A:entry/C:spatial" \
+        "${crop_wkt}" \
+        ${target_xml}
+
+      set_metadata \
+        "//A:feed/A:entry/B:date" \
+        "${start_date}/${end_date}" \
+        ${target_xml}
+
+    done
+    
+    # publishing results
+    ciop-publish -m ${TMPDIR}/${slc_out_name}.tif || return ${ERR_PUBLISH} 
+    ciop-publish -m ${TMPDIR}/${mtc_out_name}.tif || return ${ERR_PUBLISH}    
+    ciop-publish -m ${TMPDIR}/${slc_out_name}.xml || return ${ERR_PUBLISH} 
+    ciop-publish -m ${TMPDIR}/${mtc_out_name}.xml || return ${ERR_PUBLISH} 
+    
     # clean-up
     ciop-log "INFO" "(8 of ${num_steps}) Clean up" 
-    rm -fr ${output_name}.tgz
     rm -fr MTC
     rm -fr SLC_STACK
   
