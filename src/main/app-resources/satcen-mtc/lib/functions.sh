@@ -99,7 +99,7 @@ function main() {
 
     # invoke satcen JAVA app
     ciop-log "INFO" "Invoke SATCEN application"
-    timeout 1h bash -c "/opt/satcen-mtc/bin/mtc ${algorithm} ${TMPDIR} ${master_identifier} \"${crop_wkt}\"" 1>&2 
+    timeout 90m bash -c "/opt/satcen-mtc/bin/mtc ${algorithm} ${TMPDIR} ${master_identifier} \"${crop_wkt}\"" 1>&2 
 
     [ $? != 0 ] && return ${ERR_JAVA}
 
