@@ -5,6 +5,7 @@ SUCCESS=0
 ERR_NO_URL=5
 ERR_NO_LOCAL_PRD=8
 ERR_JAVA=9
+ERR_TIMEOUT=10
 ERR_PUBLISH=40
 
 node="satcen-mtc"
@@ -19,7 +20,7 @@ function cleanExit ()
     ${ERR_NO_URL}) msg="The Sentinel-1 product online resource could not be resolved";;
     ${ERR_NO_LOCAL_PRD}) msg="The Sentinel-1 product could not be retrieved";;
     ${ERR_JAVA}) msg="SatCen app failed to process";;
-    ${ERR_TIMEOUT}) msg="SatCen app terminated: timeout reached";;
+    ${ERR_TIMEOUT}) msg="SatCen app TIMEOUT reached";;
     ${ERR_PUBLISH}) msg="Failed to publish the results";;
     *) msg="Unknown error";;
  esac
