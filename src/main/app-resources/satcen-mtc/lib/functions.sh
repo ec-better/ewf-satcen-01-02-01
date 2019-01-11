@@ -19,6 +19,7 @@ function cleanExit ()
     ${ERR_NO_URL}) msg="The Sentinel-1 product online resource could not be resolved";;
     ${ERR_NO_LOCAL_PRD}) msg="The Sentinel-1 product could not be retrieved";;
     ${ERR_JAVA}) msg="SatCen app failed to process";;
+    ${ERR_TIMEOUT}) msg="SatCen app terminated: timeout reached";;
     ${ERR_PUBLISH}) msg="Failed to publish the results";;
     *) msg="Unknown error";;
  esac
@@ -100,8 +101,10 @@ function main() {
     # invoke satcen JAVA app
     ciop-log "INFO" "Invoke SATCEN application"
     timeout 90m bash -c "/opt/satcen-mtc/bin/mtc ${algorithm} ${TMPDIR} ${master_identifier} \"${crop_wkt}\"" 1>&2 
-
-    [ $? != 0 ] && return ${ERR_JAVA}
+    res=$?
+    
+    [[ $res -eq 124 ]] && return ${ERR_TIMEOUT}
+    [ $res != 0 ] && return ${ERR_JAVA}
 
     for s1 in ${s1_local[@]}
     do 
