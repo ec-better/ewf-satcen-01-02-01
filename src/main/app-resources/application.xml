@@ -4,7 +4,7 @@
     <jobTemplate id="satcen-mtc">
       <streamingExecutable>/application/satcen-mtc/run</streamingExecutable>
       <defaultParameters>
-        <parameter id="crop_wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON((9.789267467315815 13.545328656445236,9.789267467315815 13.293608039872737,9.963279058576214 13.289265722304478,9.952124469392855 13.538821973353123,9.789267467315815 13.545328656445236,9.789267467315815 13.545328656445236))</parameter>
+        <parameter id="crop_wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON((10.65344444444444 12.17622222222222, 10.65344444444444 15.48261111111111, 8.398666666666667 15.48261111111111, 8.398666666666667 12.17622222222222, 10.65344444444444 12.17622222222222))</parameter>
         <parameter id="algorithm" title="Algorithm to use: SLC_STACK, MTC, FULL" abstract="Algorithm to use: SLC_STACK, MTC, FULL" maxOccurs="1" scope="runtime" type="LiteralData">
           <options>
             <option>SLC_STACK</option>
@@ -15,10 +15,12 @@
         </parameter>
       </defaultParameters>
       <defaultJobconf>
-        <property id="ciop.job.max.tasks">1</property>
-        <property id="mapred.task.timeout">9900000000000</property>
-        <property id="mapreduce.map.maxattempts">1</property>
-        <property id="mapreduce.reduce.maxattempts">1</property>
+          <property id="ciop.job.max.tasks">1</property>
+          <property id="mapred.task.timeout">9900000000000</property>
+          <!--For oozie version < 2.4.x -->
+          <!--property id="mapreduce.reduce.maxattempts">1</property-->
+          <!--For oozie version >= 2.4.x -->
+          <property id="mapred.reduce.max.attempts">1</property>
       </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
@@ -27,7 +29,7 @@
     <node id="satcen-mtc">
       <job id="satcen-mtc"/>
       <sources>
-        <source scope="runtime" id="s1_products" title="Sentinel-1 pair separated by comma" abstract="Sentinel-1 pair separated by comma" refid="string:list" maxOccurs="1">https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180826T172154_20180826T172222_012437_016EEF_6AFD,https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180907T172154_20180907T172223_012612_017456_AB33</source>
+        <source scope="runtime" id="s1_products" title="Sentinel-1 pair separated by comma" abstract="Sentinel-1 pair separated by comma" refid="string:list" maxOccurs="1">https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180829T051902_20180829T051918_012473_017007_71DB,https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180910T051902_20180910T051918_012648_01756B_50F0</source>
       </sources>
     </node>
   </workflow>
