@@ -20,7 +20,7 @@
           <!--For oozie version < 2.4.x -->
           <!--property id="mapreduce.reduce.maxattempts">1</property-->
           <!--For oozie version >= 2.4.x -->
-          <property id="mapred.reduce.max.attempts">1</property>
+          <!--property id="mapred.reduce.max.attempts">1</property-->
       </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
