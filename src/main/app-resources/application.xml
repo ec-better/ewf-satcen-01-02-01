@@ -4,15 +4,15 @@
     <jobTemplate id="satcen-mtc">
       <streamingExecutable>/application/satcen-mtc/run</streamingExecutable>
       <defaultParameters>
-        <parameter id="crop_wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON((10.65344444444444 12.17622222222222, 10.65344444444444 15.48261111111111, 8.398666666666667 15.48261111111111, 8.398666666666667 12.17622222222222, 10.65344444444444 12.17622222222222))</parameter>
-        <parameter id="algorithm" title="Algorithm to use: SLC_STACK, MTC, FULL" abstract="Algorithm to use: SLC_STACK, MTC, FULL" maxOccurs="1" scope="runtime" type="LiteralData">
-          <options>
+        <parameter id="crop_wkt" title="WKT with the polygon to subset" abstract="WKT with the polygon to subset" scope="runtime" maxOccurs="1">POLYGON ((10.65344444444444 12.17622222222222, 10.65344444444444 15.48261111111111, 8.398666666666667 15.48261111111111, 8.398666666666667 12.17622222222222, 10.65344444444444 12.17622222222222))</parameter>
+        <parameter id="algorithm" title="Algorithm to use: FULL" abstract="Algorithm to use: FULL (for both SLC_STACK and MTC)" maxOccurs="1" scope="runtime" type="LiteralData">FULL</parameter>
+          <!--options>
             <option>SLC_STACK</option>
             <option>MTC</option>
             <option>FULL</option>
             <default>FULL</default>
-          </options>
-        </parameter>
+          </options>    
+        </parameter-->
       </defaultParameters>
       <defaultJobconf>
           <property id="ciop.job.max.tasks">1</property>
@@ -29,7 +29,7 @@
     <node id="satcen-mtc">
       <job id="satcen-mtc"/>
       <sources>
-        <source scope="runtime" id="s1_products" title="Sentinel-1 pair separated by comma" abstract="Sentinel-1 pair separated by comma" refid="string:list" maxOccurs="1">https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180829T051902_20180829T051918_012473_017007_71DB,https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180910T051902_20180910T051918_012648_01756B_50F0</source>
+        <source scope="runtime" id="s1_products" title="Sentinel-1 pair separated by comma" abstract="Sentinel-1 pair separated by comma" refid="string:list" maxOccurs="1">https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180712T051859_20180712T051915_011773_015A8D_A652,https://catalog.terradue.com/sentinel1/search?uid=S1B_S1_SLC__1SDV_20180630T051858_20180630T051915_011598_015523_67BF</source>
       </sources>
     </node>
   </workflow>

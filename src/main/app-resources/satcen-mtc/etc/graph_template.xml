@@ -1,0 +1,34 @@
+<!--
+   /opt/snap/bin/gpt graph_SLC_template.xml -PsourceFile=SLC_STACK/*.dim -PtargetbasePath=$(pwd) -PsourceBand=${input_img_file}
+-->
+<graph id="Graph">
+  <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters>
+      <file>${sourceFile}</file>
+    </parameters>
+  </node>
+  <node id="BandSelect">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters>
+      <selectedPolarisations/>
+      <sourceBands>${sourceBand}</sourceBands>
+      <bandNamePattern/>
+    </parameters>
+  </node>
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect"/>
+    </sources>
+    <parameters>
+      <file>${targetbasePath}_${sourceBand}.tif</file>
+      <formatName>GeoTiff</formatName>
+    </parameters>
+  </node>
+</graph>
