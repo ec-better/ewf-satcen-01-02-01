@@ -11,6 +11,18 @@ TIMEOUT=180
 
 node="satcen-mtc"
 
+### trap error function only for runtime errors###
+abort()
+{   
+    res=$?
+    ciop-log "ERROR" "Unexpected error occurred. Exiting"
+    ciop-log "INFO" "trapped code: $res"
+    return ${ERR_JAVA}
+}
+
+trap 'abort' ABRT TERM INT
+set -e
+
 # add a trap to exit gracefully
 function cleanExit ()
 {
@@ -56,6 +68,40 @@ function set_metadata() {
 
 }
 
+function create_metadata() {
+
+   name=$1
+   master_identifier=$2
+   slave_identifier=$3
+   crop_wkt=$4
+   start_date=$5
+   end_date=$6
+
+   cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/metadata.xml ${TMPDIR}/${name}.xml
+   target_xml=${TMPDIR}/${name}.xml
+
+   title="${name:0:3} ${master_identifier}_${slave_identifier}"
+  	set_metadata \
+        "//A:feed/A:entry/A:title" \
+        "${title}" \
+        ${target_xml}
+
+   set_metadata \
+        "//A:feed/A:entry/B:identifier" \
+        "${name}" \
+        ${target_xml}
+
+   set_metadata \
+        "//A:feed/A:entry/C:spatial" \
+        "${crop_wkt}" \
+        ${target_xml}
+
+  set_metadata \
+        "//A:feed/A:entry/B:date" \
+        "${start_date}/${end_date}" \
+        ${target_xml}
+
+}
 
 function main() {
 
@@ -63,11 +109,12 @@ function main() {
   
     s1_pair=$( cat /dev/stdin )
     crop_wkt="$( ciop-getparam crop_wkt )"
-    algorithm=$( ciop-getparam algorithm )
+    algorithm="FULL"
+    #$( ciop-getparam algorithm )
   
     cd ${TMPDIR}
 
-    num_steps=8
+    num_steps=9
 
     
     i=0
@@ -102,6 +149,7 @@ function main() {
 
     # invoke satcen JAVA app
     ciop-log "INFO" "Invoke SATCEN application"
+    
     timeout ${TIMEOUT}m bash -c "/opt/satcen-mtc/bin/mtc ${algorithm} ${TMPDIR} ${master_identifier} \"${crop_wkt}\"" 1>&2 
     res=$?
     
@@ -114,56 +162,55 @@ function main() {
         rm -fr ${s1}
     done
 
-    output_name=${master_identifier}_${slave_identifier}_${algorithm} 
-    slc_out_name="SLC_${output_name}"
-    mtc_out_name="MTC_${output_name}"
+    output_name=${master_identifier}_${slave_identifier}
+    slc_out_name="SLC_${master_identifier}"
+    mtc_out_name="MTC_${master_identifier}"
     
-    ciop-log "INFO" "(6 of ${num_steps}) Create results geotiff"
-    
-    /opt/snap6/bin/pconvert -f tifp SLC_STACK/*.dim -o ${TMPDIR}
-    mv ${TMPDIR}/*.tif ${TMPDIR}/${slc_out_name}.tif
-    /opt/snap6/bin/pconvert -f tifp MTC/*.dim -o ${TMPDIR}
-    mv ${TMPDIR}/MTC_*.tif ${TMPDIR}/${mtc_out_name}.tif
-    
-    ciop-log "INFO" "(7 of ${num_steps}) Create results metadata"
-    
-    for name in ${slc_out_name} ${mtc_out_name}
-    do
+    ciop-log "INFO" "(6 of ${num_steps}) Create results geotiff and metadata"
+    cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/graph_template.xml ${TMPDIR}/graph_template.xml
 
-      cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/metadata.xml ${TMPDIR}/${name}.xml
-      target_xml=${TMPDIR}/${name}.xml
-      
-      title="${name:0:3} ${master_identifier}_${slave_identifier}"
-      set_metadata \
-        "//A:feed/A:entry/A:title" \
-        "${title}" \
-        ${target_xml}
-
-      set_metadata \
-        "//A:feed/A:entry/B:identifier" \
-        "${name}" \
-        ${target_xml}
-        
-      set_metadata \
-        "//A:feed/A:entry/C:spatial" \
-        "${crop_wkt}" \
-        ${target_xml}
-
-      set_metadata \
-        "//A:feed/A:entry/B:date" \
-        "${start_date}/${end_date}" \
-        ${target_xml}
-
+    for f in $(ls SLC_STACK/*.data/*.img)
+    do 
+        inputBand=$(basename ${f})
+        inputBand=${inputBand%.*}
+        sourceFile=$(ls SLC_STACK/*.dim)
+        /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
+        create_metadata ${slc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}	
     done
+
+    for f in $(ls MTC/*.data/*.img)
+    do
+        inputBand=$(basename ${f})
+        inputBand=${inputBand%.*}
+        sourceFile=$(ls MTC/*.dim)
+        /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
+        create_metadata ${mtc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}	
+    done
+ 
+    ciop-log "INFO" "(7 of ${num_steps}) Compress dim results and create related metadata" 
+    tar -C ${TMPDIR} -czf ${TMPDIR}/${output_name}.tgz MTC SLC_STACK
+
+    # .properties 
+    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${output_name}.properties
+    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${output_name}.properties
+    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${output_name}.properties
     
     # publishing results
-    ciop-publish -m ${TMPDIR}/${slc_out_name}.tif || return ${ERR_PUBLISH} 
-    ciop-publish -m ${TMPDIR}/${mtc_out_name}.tif || return ${ERR_PUBLISH}    
-    ciop-publish -m ${TMPDIR}/${slc_out_name}.xml || return ${ERR_PUBLISH} 
-    ciop-publish -m ${TMPDIR}/${mtc_out_name}.xml || return ${ERR_PUBLISH} 
+    ciop-log "INFO" "8 of ${num_steps}) Publishing results and metadata"
+
+    ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}
+    ciop-publish -m ${TMPDIR}/${output_name}.properties
+
+    for tif in $(ls ${TMPDIR}/*.tif)
+    do
+        f=${tif%.*}
+        ciop-publish -m ${TMPDIR}/${f}.tif || return ${ERR_PUBLISH} 
+        ciop-publish -m ${TMPDIR}/${f}.xml || return ${ERR_PUBLISH}
+    done
     
     # clean-up
-    ciop-log "INFO" "(8 of ${num_steps}) Clean up" 
+    ciop-log "INFO" "(9 of ${num_steps}) Clean up" 
+    rm -fr *${output_name}*
     rm -fr MTC
     rm -fr SLC_STACK
   
