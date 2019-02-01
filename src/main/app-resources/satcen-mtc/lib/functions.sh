@@ -163,8 +163,8 @@ function main() {
     done
 
     output_name=${master_identifier}_${slave_identifier}
-    slc_out_name="SLC_${master_identifier}"
-    mtc_out_name="MTC_${master_identifier}"
+    slc_out_name="SLC_${output_name}"
+    mtc_out_name="MTC_${output_name}"
     
     ciop-log "INFO" "(6 of ${num_steps}) Create results geotiff and metadata"
     cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/graph_template.xml ${TMPDIR}/graph_template.xml
@@ -203,8 +203,9 @@ function main() {
 
     for tif in $(ls ${TMPDIR}/*.tif)
     do
-        f=${tif%.*}
-        ciop-publish -m ${TMPDIR}/${f}.tif || return ${ERR_PUBLISH} 
+        f=$(basename ${tif})
+        f=${f%.*}
+        ciop-publish -m ${tif} || return ${ERR_PUBLISH} 
         ciop-publish -m ${TMPDIR}/${f}.xml || return ${ERR_PUBLISH}
     done
     
