@@ -174,8 +174,11 @@ function main() {
         inputBand=$(basename ${f})
         inputBand=${inputBand%.*}
         sourceFile=$(ls SLC_STACK/*.dim)
-        /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
-        create_metadata ${slc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}	
+        /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${slc_out_name} -PsourceBand=${inputBand}
+        create_metadata ${slc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}
+        ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
+        ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
+        rm ${TMPDIR}/${slc_out_name}_${inputBand}.*
     done
 
     for f in $(ls MTC/*.data/*.img)
@@ -184,7 +187,10 @@ function main() {
         inputBand=${inputBand%.*}
         sourceFile=$(ls MTC/*.dim)
         /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
-        create_metadata ${mtc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}	
+        create_metadata ${mtc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}
+        ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
+        ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
+        rm ${TMPDIR}/${mtc_out_name}_${inputBand}.*
     done
  
     ciop-log "INFO" "(7 of ${num_steps}) Compress dim results and create related metadata" 
@@ -201,13 +207,13 @@ function main() {
     ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}
     ciop-publish -m ${TMPDIR}/${output_name}.properties
 
-    for tif in $(ls ${TMPDIR}/*.tif)
-    do
-        f=$(basename ${tif})
-        f=${f%.*}
-        ciop-publish -m ${tif} || return ${ERR_PUBLISH} 
-        ciop-publish -m ${TMPDIR}/${f}.xml || return ${ERR_PUBLISH}
-    done
+#    for tif in $(ls ${TMPDIR}/*.tif)
+#    do
+#        f=$(basename ${tif})
+#        f=${f%.*}
+#        ciop-publish -m ${tif} || return ${ERR_PUBLISH} 
+#        ciop-publish -m ${TMPDIR}/${f}.xml || return ${ERR_PUBLISH}
+#    done
     
     # clean-up
     ciop-log "INFO" "(9 of ${num_steps}) Clean up" 
