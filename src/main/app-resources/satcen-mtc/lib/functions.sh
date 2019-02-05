@@ -175,7 +175,7 @@ function main() {
         inputBand=${inputBand%.*}
         sourceFile=$(ls SLC_STACK/*.dim)
         /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${slc_out_name} -PsourceBand=${inputBand}
-        create_metadata ${slc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}
+        create_metadata "${slc_out_name}_${inputBand}" "${master_identifier}" "${slave_identifier}" "${crop_wkt}" "${start_date}" "${end_date}"
         ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
         ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
         rm ${TMPDIR}/${slc_out_name}_${inputBand}.*
@@ -187,7 +187,7 @@ function main() {
         inputBand=${inputBand%.*}
         sourceFile=$(ls MTC/*.dim)
         /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
-        create_metadata ${mtc_out_name}_${inputBand} ${master_identifier} ${slave_identifier} ${crop_wkt} ${start_date} ${end_date}
+        create_metadata "${mtc_out_name}_${inputBand}" "${master_identifier}" "${slave_identifier}" "${crop_wkt}" "${start_date}" "${end_date}"
         ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
         ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
         rm ${TMPDIR}/${mtc_out_name}_${inputBand}.*
