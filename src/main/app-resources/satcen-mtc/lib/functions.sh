@@ -52,56 +52,6 @@ function set_env() {
   
 }
 
-function set_metadata() {
-
-  local xpath="$1"
-  local value="$2"
-  local target_xml="$3"
-
-  xmlstarlet ed -L \
-    -N A="http://www.w3.org/2005/Atom" \
-    -N B="http://purl.org/dc/elements/1.1/" \
-    -N C="http://purl.org/dc/terms/" \
-    -u  "${xpath}" \
-    -v "${value}" \
-    ${target_xml}
-
-}
-
-function create_metadata() {
-
-   name=$1
-   master_identifier=$2
-   slave_identifier=$3
-   crop_wkt=$4
-   start_date=$5
-   end_date=$6
-
-   cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/metadata.xml ${TMPDIR}/${name}.xml
-   target_xml=${TMPDIR}/${name}.xml
-
-   title="${name:0:3} ${master_identifier}_${slave_identifier}"
-  	set_metadata \
-        "//A:feed/A:entry/A:title" \
-        "${title}" \
-        ${target_xml}
-
-   set_metadata \
-        "//A:feed/A:entry/B:identifier" \
-        "${name}" \
-        ${target_xml}
-
-   set_metadata \
-        "//A:feed/A:entry/C:spatial" \
-        "${crop_wkt}" \
-        ${target_xml}
-
-  set_metadata \
-        "//A:feed/A:entry/B:date" \
-        "${start_date}/${end_date}" \
-        ${target_xml}
-
-}
 
 function main() {
 
@@ -109,8 +59,7 @@ function main() {
   
     s1_pair=$( cat /dev/stdin )
     crop_wkt="$( ciop-getparam crop_wkt )"
-    algorithm="FULL"
-    #$( ciop-getparam algorithm )
+    algorithm="$( ciop-getparam algorithm )"
   
     cd ${TMPDIR}
 
@@ -166,7 +115,7 @@ function main() {
     slc_out_name="SLC_${output_name}"
     mtc_out_name="MTC_${output_name}"
     
-    ciop-log "INFO" "(6 of ${num_steps}) Create results geotiff and metadata"
+    ciop-log "INFO" "(6 of ${num_steps}) Create and publish results geotiff and related metadata"
     cp ${_CIOP_APPLICATION_PATH}/satcen-mtc/etc/graph_template.xml ${TMPDIR}/graph_template.xml
 
     for f in $(ls SLC_STACK/*.data/*.img)
@@ -176,8 +125,11 @@ function main() {
         sourceFile=$(ls SLC_STACK/*.dim)
         /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${slc_out_name} -PsourceBand=${inputBand}
         create_metadata "${slc_out_name}_${inputBand}" "${master_identifier}" "${slave_identifier}" "${crop_wkt}" "${start_date}" "${end_date}"
+        echo "title=${slc_out_name}_${inputBand}" > ${TMPDIR}/${slc_out_name}_${inputBand}.properties
+        echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${slc_out_name}_${inputBand}.properties
+        echo "geometry=${crop_wkt}" >> ${TMPDIR}/${slc_out_name}_${inputBand}.properties
         ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
-        ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
+        ciop-publish -m ${TMPDIR}/${slc_out_name}_${inputBand}.properties || return ${ERR_PUBLISH}
         rm ${TMPDIR}/${slc_out_name}_${inputBand}.*
     done
 
@@ -187,9 +139,11 @@ function main() {
         inputBand=${inputBand%.*}
         sourceFile=$(ls MTC/*.dim)
         /opt/snap6/bin/gpt ${TMPDIR}/graph_template.xml -PsourceFile=${sourceFile}  -PtargetbasePath=${TMPDIR}/${mtc_out_name} -PsourceBand=${inputBand}
-        create_metadata "${mtc_out_name}_${inputBand}" "${master_identifier}" "${slave_identifier}" "${crop_wkt}" "${start_date}" "${end_date}"
+        echo "title=${mtc_out_name}_${inputBand}" > ${TMPDIR}/${mtc_out_name}_${inputBand}.properties
+        echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${mtc_out_name}_${inputBand}.properties
+        echo "geometry=${crop_wkt}" >> ${TMPDIR}/${mtc_out_name}_${inputBand}.properties
         ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.tif || return ${ERR_PUBLISH}
-        ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.xml || return ${ERR_PUBLISH}
+        ciop-publish -m ${TMPDIR}/${mtc_out_name}_${inputBand}.properties || return ${ERR_PUBLISH}
         rm ${TMPDIR}/${mtc_out_name}_${inputBand}.*
     done
  
@@ -202,18 +156,11 @@ function main() {
     echo "geometry=${crop_wkt}" >> ${TMPDIR}/${output_name}.properties
     
     # publishing results
-    ciop-log "INFO" "8 of ${num_steps}) Publishing results and metadata"
+    ciop-log "INFO" "8 of ${num_steps}) Publish compressed results and metadata"
 
     ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}
     ciop-publish -m ${TMPDIR}/${output_name}.properties
 
-#    for tif in $(ls ${TMPDIR}/*.tif)
-#    do
-#        f=$(basename ${tif})
-#        f=${f%.*}
-#        ciop-publish -m ${tif} || return ${ERR_PUBLISH} 
-#        ciop-publish -m ${TMPDIR}/${f}.xml || return ${ERR_PUBLISH}
-#    done
     
     # clean-up
     ciop-log "INFO" "(9 of ${num_steps}) Clean up" 
