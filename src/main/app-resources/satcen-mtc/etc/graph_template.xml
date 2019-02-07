@@ -28,7 +28,7 @@
     </sources>
     <parameters>
       <file>${targetbasePath}_${sourceBand}.tif</file>
-      <formatName>GeoTiff</formatName>
+      <formatName>GeoTIFF-BigTIFF</formatName>
     </parameters>
   </node>
 </graph>
