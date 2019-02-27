@@ -148,18 +148,24 @@ function main() {
     done
  
     ciop-log "INFO" "(7 of ${num_steps}) Compress dim results and create related metadata" 
-    tar -C ${TMPDIR} -czf ${TMPDIR}/${output_name}.tgz MTC SLC_STACK
+    tar -C ${TMPDIR} -czf ${TMPDIR}/${slc_out_name}.tgz SLC_STACK
+    tar -C ${TMPDIR} -czf ${TMPDIR}/${mtc_out_name}.tgz MTC
 
     # .properties 
-    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${output_name}.properties
-    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${output_name}.properties
-    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${output_name}.properties
+    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${slc_out_name}.properties
+    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${slc_out_name}.properties
+    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${slc_out_name}.properties
+    echo "title=${master_identifier}_${slave_identifier}" > ${TMPDIR}/${mtc_out_name}.properties
+    echo "date=${start_date}/${end_date}" >> ${TMPDIR}/${mtc_out_name}.properties
+    echo "geometry=${crop_wkt}" >> ${TMPDIR}/${mtc_out_name}.properties
     
     # publishing results
     ciop-log "INFO" "8 of ${num_steps}) Publish compressed results and metadata"
 
-    ciop-publish -m ${TMPDIR}/${output_name}.tgz || return ${ERR_PUBLISH}
-    ciop-publish -m ${TMPDIR}/${output_name}.properties
+    ciop-publish -m ${TMPDIR}/${slc_out_name}.tgz || return ${ERR_PUBLISH}
+    ciop-publish -m ${TMPDIR}/${slc_out_name}.properties || return ${ERR_PUBLISH}
+    ciop-publish -m ${TMPDIR}/${mtc_out_name}.tgz || return ${ERR_PUBLISH}
+    ciop-publish -m ${TMPDIR}/${mtc_out_name}.properties || return ${ERR_PUBLISH}
 
     
     # clean-up
