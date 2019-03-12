@@ -11,7 +11,7 @@
     <version>3.0.1-docker</version>
   </parent>
   <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
-  <version>0.19</version>
+  <version>0.20</version>
   <properties>
     <summary>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</summary>
     <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
