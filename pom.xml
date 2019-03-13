@@ -11,7 +11,7 @@
     <version>2.0.0</version>
   </parent>
   <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
-  <version>0.21-SNAPSHOT</version>
+  <version>0.21</version>
   <properties>
     <summary>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</summary>
     <description>SATCEN-01-02-01 Sentinel-1 Multi-temporal SLC and Coherence Stack</description>
